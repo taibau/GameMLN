@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bầu Cua Triết Học - Hành Trình Săn Kho Báu</title>
+  <link rel="stylesheet" href="style.css?v=7">
+</head>
+<body>
+  <!-- MÀN HÌNH CHỜ (SETUP) -->
+  <div id="setup-screen" class="screen active">
+    <div class="setup-container">
+      <h1>HÀNH TRÌNH BẦU CUA TRIẾT HỌC</h1>
+      <p class="subtitle">Khám phá triết lý qua từng vòng quay dân gian</p>
+      
+      <div id="role-selection">
+        <button id="btn-be-host" class="btn-primary" style="margin-bottom: 10px;">TẠO PHÒNG (Dành cho Màn Hình Máy Chiếu)</button>
+        <button id="btn-be-player" class="btn-secondary">THAM GIA (Dành cho Người Chơi)</button>
+      </div>
+
+      <div id="join-form" style="display: none;">
+        <input type="text" id="team-name" placeholder="Nhập tên đội của bạn (Vd: Đội Đỏ)...">
+        <div class="color-picker" id="color-picker">
+          <div class="color-dot selected" style="background:#e74c3c" data-color="#e74c3c"></div>
+          <div class="color-dot" style="background:#3498db" data-color="#3498db"></div>
+          <div class="color-dot" style="background:#2ecc71" data-color="#2ecc71"></div>
+          <div class="color-dot" style="background:#f1c40f" data-color="#f1c40f"></div>
+          <div class="color-dot" style="background:#9b59b6" data-color="#9b59b6"></div>
+          <div class="color-dot" style="background:#e67e22" data-color="#e67e22"></div>
+        </div>
+        <button id="btn-join" class="btn-primary">THAM GIA PHÒNG CHỜ</button>
+        <button class="btn-secondary" onclick="document.getElementById('role-selection').style.display='block'; document.getElementById('join-form').style.display='none';">Quay lại</button>
+      </div>
+
+      <div class="lobby-info" id="lobby-info-section" style="display: none;">
+        <h3>Danh Sách Đội Tham Gia (<span id="team-count">0</span>/20)</h3>
+        <div id="lobby-teams" class="teams-grid"></div>
+        
+        <div id="host-setup-controls" style="margin-top: 20px; display:none;">
+           <label style="font-weight:bold; font-size:1.2rem;">Thời gian cược (s): </label>
+           <input type="number" id="bet-time-input" value="30" style="width: 80px; font-size:1.2rem; text-align:center; padding: 5px; border-radius:8px;">
+           <button id="btn-start" class="btn-action" style="margin-left:10px;">BẮT ĐẦU TRÒ CHƠI</button>
+        </div>
+        
+        <!-- Nút quản lý câu hỏi chỉ hiện cho host -->
+        <button id="btn-admin" class="btn-secondary" style="display:none; margin-top: 20px; width: 100%;">⚙️ QUẢN LÝ NGÂN HÀNG CÂU HỎI</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MÀN HÌNH CHÍNH (BÀN CỜ) -->
+  <div id="game-screen" class="screen">
+    <div class="main-layout">
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="turn-info box">
+          <div class="turn-label">TRẠNG THÁI VÒNG CHƠI</div>
+          <div id="global-timer-display" class="current-team" style="font-size:3rem; margin-top:10px;">--:--</div>
+        </div>
+
+        <div class="teams-list-container box">
+          <h3>Bảng Xếp Hạng</h3>
+          <div id="game-teams-list" class="teams-scrollable"></div>
+        </div>
+
+        <div class="action-box box">
+          <h3 id="action-title">Hành Động</h3>
+          <div id="action-controls">
+            <!-- Nút điều khiển sẽ thay đổi theo phase -->
+            <button id="btn-show-bet" class="btn-action" disabled>CHỌN LINH VẬT ĐỂ CƯỢC</button>
+          </div>
+          <div id="dice-result-display" class="dice-result-display"></div>
+          <button id="btn-admin-ingame" class="btn-secondary" style="display:none; margin-top: 15px; width:100%; font-size: 0.9rem;">⚙️ Quản lý Đề</button>
+        </div>
+
+        <div class="log-box box">
+          <h3>Nhật Ký Hành Trình</h3>
+          <div id="logs-container"></div>
+        </div>
+      </div>
+
+      <!-- BÀN CỜ -->
+      <div class="board-wrapper" id="board-container">
+        <div class="board-header">
+          <h2>Bàn Cờ Vận Mệnh</h2>
+        </div>
+        <div id="board" class="board-grid"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- MÀN HÌNH PLAYER MOBILE (Thay thế sidebar/board) -->
+  <div id="mobile-player-view" class="screen" style="display: none;">
+    <div class="mobile-container">
+      <h2 id="mobile-status" style="margin-bottom: 20px; font-family: var(--font-title); font-size: 2rem; color: #fff; text-shadow: 2px 2px 4px #000;">ĐANG CHỜ TỚI LƯỢT...</h2>
+      
+      <div id="mobile-action-controls">
+         <!-- Buttons will be rendered here for player -->
+      </div>
+      
+      <!-- Giao diện cược (3 slot) cho Player -->
+      <div id="mobile-betting-area" style="display: none; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 12px; margin-top: 20px; max-width: 800px; width: 100%;">
+        <h3>ĐẶT 3 CƯỢC</h3>
+        <div id="mobile-selected-bets" style="display: flex; gap: 10px; justify-content: center; margin: 10px 0; min-height: 50px;">
+          <!-- Hiện các biểu tượng đã chọn -->
+        </div>
+        <div class="baucua-grid" style="margin-top:0;">
+          <button class="btn-bet" onclick="addBet('Bầu')"><div class="bet-icon">🏺</div><div class="bet-name">BẦU</div></button>
+          <button class="btn-bet" onclick="addBet('Cua')"><div class="bet-icon">🦀</div><div class="bet-name">CUA</div></button>
+          <button class="btn-bet" onclick="addBet('Tôm')"><div class="bet-icon">🦐</div><div class="bet-name">TÔM</div></button>
+          <button class="btn-bet" onclick="addBet('Cá')"><div class="bet-icon">🐟</div><div class="bet-name">CÁ</div></button>
+          <button class="btn-bet" onclick="addBet('Gà')"><div class="bet-icon">🐓</div><div class="bet-name">GÀ</div></button>
+          <button class="btn-bet" onclick="addBet('Nai')"><div class="bet-icon">🦌</div><div class="bet-name">NAI</div></button>
+        </div>
+      </div>
+      
+      <!-- Giao diện trả lời cho Mobile (4 khối to) -->
+      <div id="mobile-answer-area" style="display: none; margin-top: 20px;">
+        <div class="mobile-answer-grid">
+          <button class="btn-ans-mobile color-a" onclick="submitAnswer(0)">A</button>
+          <button class="btn-ans-mobile color-b" onclick="submitAnswer(1)">B</button>
+          <button class="btn-ans-mobile color-c" onclick="submitAnswer(2)">C</button>
+          <button class="btn-ans-mobile color-d" onclick="submitAnswer(3)">D</button>
+        </div>
+      </div>
+      
+      <div id="mobile-result-display" class="dice-result-display" style="margin-top: 20px;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL PHÁO HOA TỰ ĐỘNG -->
+  <div id="fireworks-modal" class="modal-overlay" style="z-index: 9999;">
+    <div class="modal-content fade-in-up" style="background: transparent; box-shadow: none; border: none; padding: 50px; text-align: center;">
+      <h2 class="bounce-anim" style="font-size: 6rem; color: #f1c40f; text-shadow: 2px 2px 10px #000, 0 0 20px #e74c3c; font-family: var(--font-title); margin-bottom: 20px;">🎲 ĐÃ TUNG XÚC XẮC 🎲</h2>
+      <p style="font-size: 3rem; color: #fff; text-shadow: 2px 2px 8px #000; font-weight: bold; background: rgba(0,0,0,0.6); padding: 15px; border-radius: 12px; display: inline-block;">Chuẩn bị tinh thần trả lời câu hỏi!</p>
+    </div>
+  </div>
+
+  <!-- MODAL CÂU HỎI CHO HOST -->
+  <div id="question-modal" class="modal-overlay">
+    <div class="modal-content fade-in-up" style="max-width: 800px;">
+      <h2 style="color:var(--primary-red); font-size:2rem; margin-bottom: 20px;">THỬ THÁCH TRÍ TUỆ ( <span id="q-timer">20</span>s )</h2>
+      <p id="q-text" class="question-text" style="font-size: 1.5rem; color: #2c3e50; font-weight: bold;"></p>
+      <div id="q-options" class="options-grid host-options-grid"></div>
+      <div id="host-realtime-status" style="margin-top: 20px; font-size: 1.2rem; font-weight: bold; color: #e67e22; min-height: 30px;">
+        <!-- Thông báo player chọn -->
+      </div>
+      <div id="q-result" class="q-result" style="font-size: 1.3rem;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL TỔNG KẾT VÒNG CHƠI -->
+  <div id="round-result-modal" class="modal-overlay" style="z-index: 9998;">
+    <div class="modal-content fade-in-up" style="max-width: 900px; text-align:center;">
+      <h2 style="font-size: 3rem; color: #e74c3c;">KẾT QUẢ VÒNG CHƠI</h2>
+      <h3 style="color:#2c3e50; margin: 10px 0;">Đáp án đúng: <span id="rr-ans" style="color:#27ae60; font-size: 2rem;"></span></h3>
+      <div style="display:flex; justify-content:space-around; margin-top:30px;">
+        <div style="width: 45%;">
+          <h3 style="color:#27ae60;">🎉 ĐÚNG (Tiến bước)</h3>
+          <div id="rr-correct" style="font-size:1.2rem; line-height:1.5;"></div>
+        </div>
+        <div style="width: 45%;">
+          <h3 style="color:#e74c3c;">❌ SAI (Đứng im)</h3>
+          <div id="rr-wrong" style="font-size:1.2rem; line-height:1.5;"></div>
+        </div>
+      </div>
+      <button class="btn-action" style="margin-top:30px;" onclick="socket.emit('start_betting', document.getElementById('bet-time-input').value)">⏩ TIẾP TỤC VÒNG MỚI</button>
+    </div>
+  </div>
+
+  <!-- MODAL CHIẾN THẮNG GAME OVER -->
+  <div id="game-over-modal" class="modal-overlay" style="z-index:99999; background:rgba(0,0,0,0.95); display:none; flex-direction:column; align-items:center; justify-content:center;">
+    <canvas id="fireworks-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:99998;"></canvas>
+    <!-- Nhạc My Way (YouTube hidden iframe) -->
+    <iframe id="my-way-audio" width="0" height="0" frameborder="0" allow="autoplay"
+      src="about:blank" style="display:none;"></iframe>
+    
+    <div style="position:relative;z-index:99999;text-align:center;padding:30px 20px;width:100%;max-width:700px;">
+      <!-- Trophy animation -->
+      <div id="trophy-icon" style="font-size:8rem; animation:trophy-bounce 0.8s ease-in-out infinite alternate;">🏆</div>
+      
+      <!-- Tên đội vô địch -->
+      <h1 id="winner-name"
+        style="font-size:clamp(2.5rem,8vw,6rem); font-family:'Georgia',serif; margin:15px 0; 
+               background:linear-gradient(135deg,#f1c40f,#e67e22,#f1c40f);
+               -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+               background-clip:text;
+               filter:drop-shadow(0 0 20px rgba(241,196,15,0.8));
+               animation:winner-glow 1.5s ease-in-out infinite alternate;"></h1>
+      
+      <p id="winner-subtitle" style="font-size:clamp(1rem,3vw,1.8rem); color:#ecf0f1; letter-spacing:4px; margin-bottom:30px; text-transform:uppercase;"></p>
+
+      <!-- Bảng xếp hạng -->
+      <div id="final-leaderboard"
+        style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2);
+               border-radius:20px; padding:20px; max-width:500px; margin:0 auto 30px; backdrop-filter:blur(10px);"></div>
+      
+      <button class="btn-action" style="font-size:1.3rem; padding:15px 40px;" 
+        onclick="socket.emit('reset_game'); closeGameOverModal();">🔄 CHƠI VÁN MỚI</button>
+    </div>
+  </div>
+
+  <!-- MODAL QUẢN LÝ CÂU HỎI (ADMIN) -->
+  <div id="admin-modal" class="modal-overlay">
+    <div class="modal-content admin-content fade-in-up">
+      <h2>⚙️ NGÂN HÀNG CÂU HỎI</h2>
+      <p style="font-style:italic; margin-bottom:15px; font-size:0.9rem; color:#7f8c8d;">Hãy soạn thảo câu hỏi. Tích vào ô tròn bên cạnh đáp án đúng.</p>
+      <div id="admin-q-list" class="admin-q-list">
+        <!-- Các form câu hỏi sẽ được render ở đây -->
+      </div>
+      <div class="admin-actions">
+        <button id="btn-add-q" class="btn-action" style="margin-bottom:10px;">+ THÊM CÂU HỎI MỚI</button>
+        <button id="btn-save-q" class="btn-primary">💾 NẠP DỮ LIỆU CÂU HỎI</button>
+        <button class="btn-secondary" onclick="closeModal('admin-modal')">ĐÓNG BẢNG</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- THÔNG BÁO EVENT -->
+  <div id="toast-container"></div>
+
+  <!-- THƯ VIỆN -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="game.js?v=7"></script>
+</body>
+</html>
