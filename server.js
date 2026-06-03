@@ -69,7 +69,7 @@ io.on('connection', (socket) => {
   socket.emit("init_questions", questions);
   
   // Ép reload nếu trình duyệt đang xài cache cũ
-  socket.emit("force_reload_if_old", "v5");
+  socket.emit("force_reload_if_old", "v6");
 
   // --- XỬ LÝ SỰ KIỆN TỪ CLIENT ---
 

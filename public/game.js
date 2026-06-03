@@ -10,7 +10,7 @@ let myTeamId = null;
 let isHost = false;
 let currentGameState = null;
 let localQuestions = [];
-window.appVersion = "v5";
+window.appVersion = "v6";
 
 // Icons mapping
 const ICONS = {
@@ -780,11 +780,15 @@ document.getElementById("btn-save-q").onclick = () => {
 
 // ----- SETUP LOGIC -----
 const params = new URLSearchParams(window.location.search);
-const mode = params.get("mode");
+const mode = (params.get("mode") || "").trim().toLowerCase();
+const hostBtn = document.getElementById("btn-be-host");
+const playerBtn = document.getElementById("btn-be-player");
 if (mode === "host") {
-  document.getElementById("btn-be-player").style.display = "none";
+  hostBtn.style.display = "block";
+  playerBtn.style.display = "none";
 } else if (mode === "player") {
-  document.getElementById("btn-be-host").style.display = "none";
+  hostBtn.style.display = "none";
+  playerBtn.style.display = "block";
 }
 
 document.getElementById("btn-be-host").onclick = () => {
