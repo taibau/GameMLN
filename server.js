@@ -34,13 +34,6 @@ let gameState = {
 };
 let timerInterval = null;
 
-const fallbackQuestions = [
-  { text: "Theo quan điểm của chủ nghĩa Mác - Lênin, nguồn gốc sâu xa của sự xuất hiện Nhà nước là gì?", options: ["A. Sự xuất hiện của chế độ tư hữu và phân chia giai cấp đối kháng.", "B. Nhu cầu quản lý các công trình công cộng và thủy lợi.", "C. Ý chí và thế lực tối cao của một đấng siêu nhiên.", "D. Sự tự nguyện ký kết khế ước xã hội của các thành viên."], ans: "A", exp: "Sự phân hóa xã hội thành các giai cấp đối kháng do tư hữu xuất hiện là nguồn gốc kinh tế - xã hội sâu xa dẫn tới sự ra đời của Nhà nước." },
-  { text: "Nhà nước có đặc trưng cơ bản nào phân biệt nó với các tổ chức xã hội khác?", options: ["A. Quản lý dân cư theo lãnh thổ, có bộ máy cưỡng chế chuyên nghiệp và thu thuế.", "B. Được thành lập tự nguyện bởi mọi thành viên trong xã hội.", "C. Không sử dụng bạo lực pháp lý trong việc quản lý xã hội.", "D. Chỉ hoạt động vì lợi ích cá nhân của giai cấp thống trị tối cao."], ans: "A", exp: "Quản lý dân cư theo phân chia lãnh thổ hành chính, thiết lập quyền lực công cộng đặc biệt (quân đội, cảnh sát) và thu thuế là 3 đặc trưng cơ bản." },
-  { text: "Theo quan điểm Mác - Lênin, bản chất giai cấp của Nhà nước được hiểu như thế nào?", options: ["A. Nhà nước là công cụ chuyên chính của giai cấp này đối với giai cấp khác.", "B. Nhà nước là tổ chức trung lập điều hòa mọi mâu thuẫn xã hội.", "C. Nhà nước biểu trưng cho lợi ích chung, công bằng xã hội.", "D. Nhà nước là sản phẩm tự nhiên của sự đồng thuận xã hội."], ans: "A", exp: "Bản chất giai cấp của nhà nước biểu hiện ở chỗ nó là công cụ để duy trì sự thống trị và chuyên chính giai cấp." },
-  { text: "Theo triết học Mác - Lênin, tương lai của Nhà nước sẽ như thế nào trong xã hội cộng sản?", options: ["A. Nhà nước sẽ tự tiêu vong khi giai cấp và bóc lột biến mất hoàn toàn.", "B. Nhà nước sẽ tồn tại vĩnh viễn cùng loài người.", "C. Nhà nước sẽ bị xóa bỏ bằng bạo lực của thế lực thần thánh.", "D. Nhà nước sẽ ngày càng mạnh lên và quản lý chặt chẽ hơn."], ans: "A", exp: "Mác - Lênin chỉ ra rằng khi xã hội không còn giai cấp, không còn đấu tranh giai cấp thì nhà nước sẽ tự tiêu vong." }
-];
-
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -86,13 +79,16 @@ function parseQuestionsFromMarkdown(content) {
 
 function loadQuestionsFromMarkdown() {
   const mdPath = path.join(__dirname, '60_cau_hoi_nha_nuoc_day_du.md');
-  if (!fs.existsSync(mdPath)) return null;
+  if (!fs.existsSync(mdPath)) return [];
   const parsed = parseQuestionsFromMarkdown(fs.readFileSync(mdPath, 'utf8'));
-  if (!parsed.length) return null;
+  if (!parsed.length) return [];
   return parsed;
 }
 
-let questions = loadQuestionsFromMarkdown() || fallbackQuestions;
+let questions = loadQuestionsFromMarkdown();
+if (!questions.length) {
+  console.error('Khong tim thay cau hoi hop le trong file 60_cau_hoi_nha_nuoc_day_du.md');
+}
 let questionQueue = [];
 
 function refillQuestionQueue() {
