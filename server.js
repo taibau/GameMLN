@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -33,24 +34,75 @@ let gameState = {
 };
 let timerInterval = null;
 
-// Bộ câu hỏi mặc định (có thể được admin cập nhật)
-let questions = [
+const fallbackQuestions = [
   { text: "Theo quan điểm của chủ nghĩa Mác - Lênin, nguồn gốc sâu xa của sự xuất hiện Nhà nước là gì?", options: ["A. Sự xuất hiện của chế độ tư hữu và phân chia giai cấp đối kháng.", "B. Nhu cầu quản lý các công trình công cộng và thủy lợi.", "C. Ý chí và thế lực tối cao của một đấng siêu nhiên.", "D. Sự tự nguyện ký kết khế ước xã hội của các thành viên."], ans: "A", exp: "Sự phân hóa xã hội thành các giai cấp đối kháng do tư hữu xuất hiện là nguồn gốc kinh tế - xã hội sâu xa dẫn tới sự ra đời của Nhà nước." },
   { text: "Nhà nước có đặc trưng cơ bản nào phân biệt nó với các tổ chức xã hội khác?", options: ["A. Quản lý dân cư theo lãnh thổ, có bộ máy cưỡng chế chuyên nghiệp và thu thuế.", "B. Được thành lập tự nguyện bởi mọi thành viên trong xã hội.", "C. Không sử dụng bạo lực pháp lý trong việc quản lý xã hội.", "D. Chỉ hoạt động vì lợi ích cá nhân của giai cấp thống trị tối cao."], ans: "A", exp: "Quản lý dân cư theo phân chia lãnh thổ hành chính, thiết lập quyền lực công cộng đặc biệt (quân đội, cảnh sát) và thu thuế là 3 đặc trưng cơ bản." },
   { text: "Theo quan điểm Mác - Lênin, bản chất giai cấp của Nhà nước được hiểu như thế nào?", options: ["A. Nhà nước là công cụ chuyên chính của giai cấp này đối với giai cấp khác.", "B. Nhà nước là tổ chức trung lập điều hòa mọi mâu thuẫn xã hội.", "C. Nhà nước biểu trưng cho lợi ích chung, công bằng xã hội.", "D. Nhà nước là sản phẩm tự nhiên của sự đồng thuận xã hội."], ans: "A", exp: "Bản chất giai cấp của nhà nước biểu hiện ở chỗ nó là công cụ để duy trì sự thống trị và chuyên chính giai cấp." },
   { text: "Theo triết học Mác - Lênin, tương lai của Nhà nước sẽ như thế nào trong xã hội cộng sản?", options: ["A. Nhà nước sẽ tự tiêu vong khi giai cấp và bóc lột biến mất hoàn toàn.", "B. Nhà nước sẽ tồn tại vĩnh viễn cùng loài người.", "C. Nhà nước sẽ bị xóa bỏ bằng bạo lực của thế lực thần thánh.", "D. Nhà nước sẽ ngày càng mạnh lên và quản lý chặt chẽ hơn."], ans: "A", exp: "Mác - Lênin chỉ ra rằng khi xã hội không còn giai cấp, không còn đấu tranh giai cấp thì nhà nước sẽ tự tiêu vong." }
 ];
 
-let usedQuestions = [];
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function parseQuestionsFromMarkdown(content) {
+  const normalized = (content || '').replace(/\r\n/g, '\n');
+  const blocks = normalized.split(/\n(?=###\s*C[aâ]u\s*\d+)/i);
+  const out = [];
+
+  for (const block of blocks) {
+    if (!/^###\s*C[aâ]u\s*\d+/i.test(block.trim())) continue;
+    const body = block.replace(/^###\s*C[aâ]u\s*\d+\s*\n?/i, '').trim();
+    const ansMatch = body.match(/\*\*\s*Đ[aá]p\s*[áa]n\s*:\s*([ABCD])\s*\*\*/i) || body.match(/Đ[aá]p\s*[áa]n\s*:\s*([ABCD])/i);
+    const answer = ansMatch ? ansMatch[1].toUpperCase() : '';
+
+    const cleanBody = body
+      .replace(/^\s*\*\*\s*Đ[aá]p\s*[áa]n\s*:\s*[ABCD]\s*\*\*\s*$/gim, '')
+      .replace(/^\s*Đ[aá]p\s*[áa]n\s*:\s*[ABCD]\s*$/gim, '')
+      .trim();
+
+    const optionsMap = { A: '', B: '', C: '', D: '' };
+    const optionRegex = /^\s*([ABCD])\.\s*(.+)$/gim;
+    let m;
+    while ((m = optionRegex.exec(cleanBody)) !== null) {
+      optionsMap[m[1].toUpperCase()] = `${m[1].toUpperCase()}. ${m[2].trim()}`;
+    }
+
+    const firstOptIndex = cleanBody.search(/^\s*[ABCD]\./m);
+    const questionText = (firstOptIndex >= 0 ? cleanBody.slice(0, firstOptIndex) : '')
+      .replace(/\n+/g, ' ')
+      .trim();
+
+    if (!questionText || !optionsMap.A || !optionsMap.B || !optionsMap.C || !optionsMap.D || !answer) continue;
+    out.push({ text: questionText, options: [optionsMap.A, optionsMap.B, optionsMap.C, optionsMap.D], ans: answer, exp: '' });
+  }
+
+  return out;
+}
+
+function loadQuestionsFromMarkdown() {
+  const mdPath = path.join(__dirname, '60_cau_hoi_nha_nuoc_day_du.md');
+  if (!fs.existsSync(mdPath)) return null;
+  const parsed = parseQuestionsFromMarkdown(fs.readFileSync(mdPath, 'utf8'));
+  if (!parsed.length) return null;
+  return parsed;
+}
+
+let questions = loadQuestionsFromMarkdown() || fallbackQuestions;
+let questionQueue = [];
+
+function refillQuestionQueue() {
+  questionQueue = shuffleArray(Array.from({ length: questions.length }, (_, i) => i));
+}
 
 function getRandomQuestion() {
-  let avail = questions.filter((_, i) => !usedQuestions.includes(i));
-  if (!avail.length) {
-    usedQuestions = [];
-    avail = questions;
-  }
-  const idx = questions.indexOf(avail[Math.floor(Math.random() * avail.length)]);
-  usedQuestions.push(idx);
+  if (!questions.length) return null;
+  if (!questionQueue.length) refillQuestionQueue();
+  const idx = questionQueue.pop();
   return questions[idx];
 }
 
@@ -279,6 +331,7 @@ io.on('connection', (socket) => {
   // Cập nhật câu hỏi (Admin)
   socket.on("update_questions", (newQList) => {
     questions = newQList;
+    questionQueue = [];
     io.emit("init_questions", questions);
   });
 
