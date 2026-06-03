@@ -279,23 +279,32 @@ h1 { font-family: var(--font-title); color: var(--primary-red); margin-bottom: 1
 .host-options-grid .btn-option { font-size: 1.2rem; padding: 15px; }
 
 #question-modal .modal-content {
-  width: min(96vw, 1200px);
-  max-width: 1200px;
-  padding: 40px;
+  width: 80vw;
+  max-width: none;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 48px 56px;
+}
+
+#question-modal h2 {
+  font-size: 3.2rem !important;
+  margin-bottom: 22px !important;
 }
 
 #question-modal .question-text {
-  font-size: 2rem !important;
-  line-height: 1.45;
+  font-size: 3rem !important;
+  line-height: 1.4;
+  margin-bottom: 24px;
 }
 
 #question-modal .host-options-grid .btn-option {
-  font-size: 1.5rem;
-  padding: 18px 22px;
+  font-size: 2.05rem;
+  line-height: 1.35;
+  padding: 22px 26px;
 }
 
 #question-modal #host-realtime-status {
-  font-size: 1.5rem !important;
+  font-size: 2rem !important;
 }
 
 /* Question Options */
