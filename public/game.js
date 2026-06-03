@@ -779,10 +779,11 @@ document.getElementById("btn-save-q").onclick = () => {
 };
 
 // ----- SETUP LOGIC -----
-const hostname = window.location.hostname;
-if (hostname === "localhost" || hostname === "127.0.0.1") {
+const params = new URLSearchParams(window.location.search);
+const mode = params.get("mode");
+if (mode === "host") {
   document.getElementById("btn-be-player").style.display = "none";
-} else {
+} else if (mode === "player") {
   document.getElementById("btn-be-host").style.display = "none";
 }
 
