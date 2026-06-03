@@ -737,6 +737,69 @@ document.getElementById("btn-add-q").onclick = () => {
   list.scrollTop = list.scrollHeight;
 };
 
+document.getElementById("btn-import-md").onclick = () => {
+  document.getElementById("md-file-input").click();
+};
+
+document.getElementById("md-file-input").onchange = async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const content = await file.text();
+  const importedQuestions = parseQuestionsFromMarkdown(content);
+
+  if (!importedQuestions.length) {
+    showToast("Không đọc được câu hỏi từ file Markdown!", "error");
+    e.target.value = "";
+    return;
+  }
+
+  localQuestions = importedQuestions;
+  renderAdminQuestions();
+  showToast(`Đã nạp ${importedQuestions.length} câu hỏi từ Markdown. Bấm NẠP DỮ LIỆU để lưu.`, "success");
+  e.target.value = "";
+};
+
+function parseQuestionsFromMarkdown(content) {
+  const normalized = (content || "").replace(/\r\n/g, "\n");
+  const blocks = normalized.split(/\n(?=###\s*C[aâ]u\s*\d+)/i);
+  const out = [];
+
+  for (const block of blocks) {
+    if (!/^###\s*C[aâ]u\s*\d+/i.test(block.trim())) continue;
+
+    const body = block.replace(/^###\s*C[aâ]u\s*\d+\s*\n?/i, "").trim();
+    const ansMatch = body.match(/\*\*\s*Đ[aá]p\s*[áa]n\s*:\s*\*\*\s*([ABCD])/i) || body.match(/Đ[aá]p\s*[áa]n\s*:\s*([ABCD])/i);
+    const answer = ansMatch ? ansMatch[1].toUpperCase() : "";
+    const cleanBody = body
+      .replace(/^\s*\*\*\s*Đ[aá]p\s*[áa]n\s*:\s*\*\*\s*[ABCD].*$/gim, "")
+      .replace(/^\s*Đ[aá]p\s*[áa]n\s*:\s*[ABCD].*$/gim, "")
+      .trim();
+
+    const optionRegex = /^\s*([ABCD])\.\s*(.+)$/gim;
+    const optionsMap = { A: "", B: "", C: "", D: "" };
+    let m;
+    while ((m = optionRegex.exec(cleanBody)) !== null) {
+      optionsMap[m[1].toUpperCase()] = `${m[1].toUpperCase()}. ${m[2].trim()}`;
+    }
+
+    const firstOptIndex = cleanBody.search(/^\s*[ABCD]\./m);
+    const questionText = (firstOptIndex >= 0 ? cleanBody.slice(0, firstOptIndex) : "")
+      .replace(/\n+/g, " ")
+      .trim();
+
+    if (!questionText || !optionsMap.A || !optionsMap.B || !optionsMap.C || !optionsMap.D || !answer) continue;
+
+    out.push({
+      text: questionText,
+      options: [optionsMap.A, optionsMap.B, optionsMap.C, optionsMap.D],
+      ans: answer,
+      exp: ""
+    });
+  }
+
+  return out;
+}
+
 document.getElementById("btn-save-q").onclick = () => {
   const newQuestions = [];
   const forms = document.querySelectorAll(".q-form-item");

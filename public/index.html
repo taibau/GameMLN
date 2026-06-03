@@ -209,6 +209,8 @@
         <!-- Các form câu hỏi sẽ được render ở đây -->
       </div>
       <div class="admin-actions">
+        <input id="md-file-input" type="file" accept=".md,.markdown,text/markdown" style="display:none;">
+        <button id="btn-import-md" class="btn-secondary" style="margin-bottom:10px;">📥 NHẬP TỪ FILE MARKDOWN</button>
         <button id="btn-add-q" class="btn-action" style="margin-bottom:10px;">+ THÊM CÂU HỎI MỚI</button>
         <button id="btn-save-q" class="btn-primary">💾 NẠP DỮ LIỆU CÂU HỎI</button>
         <button class="btn-secondary" onclick="closeModal('admin-modal')">ĐÓNG BẢNG</button>
@@ -221,6 +223,6 @@
 
   <!-- THƯ VIỆN -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="game.js?v=8"></script>
+  <script src="game.js?v=9"></script>
 </body>
 </html>
