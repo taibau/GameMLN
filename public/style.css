@@ -278,6 +278,26 @@ h1 { font-family: var(--font-title); color: var(--primary-red); margin-bottom: 1
 
 .host-options-grid .btn-option { font-size: 1.2rem; padding: 15px; }
 
+#question-modal .modal-content {
+  width: min(96vw, 1200px);
+  max-width: 1200px;
+  padding: 40px;
+}
+
+#question-modal .question-text {
+  font-size: 2rem !important;
+  line-height: 1.45;
+}
+
+#question-modal .host-options-grid .btn-option {
+  font-size: 1.5rem;
+  padding: 18px 22px;
+}
+
+#question-modal #host-realtime-status {
+  font-size: 1.5rem !important;
+}
+
 /* Question Options */
 .question-text { font-size: 1.2rem; font-style: italic; margin-bottom: 20px; color: #34495e; line-height: 1.5; }
 .options-grid { display: flex; flex-direction: column; gap: 10px; }
